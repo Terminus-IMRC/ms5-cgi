@@ -1,7 +1,10 @@
 #include <libms.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <libgen.h>
+#include <unistd.h>
+#include <errno.h>
 
 int main()
 {
@@ -12,6 +15,7 @@ int main()
 	int i;
 	char *uri, *str;
 	int len;
+	int ret;
 
 	printf("Content-Type: text/plain\r\n");
 
@@ -29,7 +33,8 @@ int main()
 		printf("error: request URI too short\n");
 		exit(EXIT_FAILURE);
 	}
-	if (strncmp(str + len - 4, ".txt", 4)) {
+	ret = strncmp(str + len - 4, ".txt", 4);
+	if (ret) {
 		printf("\r\n");
 		printf("error: request URI does not end with \".txt\"\n");
 		exit(EXIT_FAILURE);
@@ -37,6 +42,13 @@ int main()
 	str[len - 3] = 'b';
 	str[len - 2] = 'i';
 	str[len - 1] = 'n';
+
+	ret = access(str, R_OK);
+	if (ret == -1) {
+		printf("\r\n");
+		printf("error: access: %s: %s\n", str, strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
 	ms_init(5, MS_ORIGIN_ONE, &st);
 	ms_bin_seq_read_open(str, MS_BIN_SEQ_READ_FLAG_NONE, &mbr, &st);
