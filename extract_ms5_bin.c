@@ -13,10 +13,11 @@ int main()
 	char *uri, *str;
 	int len;
 
-	printf("Content-Type: text/plain\r\n\r\n\r\n");
+	printf("Content-Type: text/plain\r\n");
 
 	uri = getenv("REQUEST_URI");
 	if (uri == NULL) {
+		printf("\r\n");
 		printf("error: invalid request URI\n");
 		exit(EXIT_FAILURE);
 	}
@@ -24,10 +25,12 @@ int main()
 	str = basename(uri);
 	len = strlen(str);
 	if (len <= 4) {
+		printf("\r\n");
 		printf("error: request URI too short\n");
 		exit(EXIT_FAILURE);
 	}
 	if (strncmp(str + len - 4, ".txt", 4)) {
+		printf("\r\n");
 		printf("error: request URI does not end with \".txt\"\n");
 		exit(EXIT_FAILURE);
 	}
@@ -37,6 +40,8 @@ int main()
 
 	ms_init(5, MS_ORIGIN_ONE, &st);
 	ms_bin_seq_read_open(str, MS_BIN_SEQ_READ_FLAG_NONE, &mbr, &st);
+	printf("Content-Length: %llu\r\n", mbr.total * (1 * (9 - 1 + 1) + 2 * (25 - 10 + 1) + 1 * (25 - 1) + 1));
+	printf("\r\n");
 	ms_bin_seq_read_set_buffer(5224 * 8, &mbr, &st);
 	do {
 		retm = ms_bin_seq_read_next(ms, &mbr, &st);
